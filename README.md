@@ -168,96 +168,103 @@ uszipinfo.ENUMS         # allowed values for enum-like columns
 ## Schema
 
 54 columns across 10 categories. All percentage fields are in 0–1 range
-(not 0–100). `Optional` fields can be null when source data is unavailable.
+(not 0–100).
+
+The **Nullable** column indicates whether the field can be `None` (in
+Python) or `NaN` (in pandas). Non-nullable fields are guaranteed to have
+a value for every record. Nullable fields may be missing for ZIPs where
+the underlying data source is unavailable — typically PO Box, Unique,
+and Military ZIPs that have no residential population for the Census to
+measure.
 
 ### Geographic identity
 
-| Field | Type | Description |
-|---|---|---|
-| `zip` | str(5) | 5-digit ZIP, zero-padded. Primary key. |
-| `state` | str(2) | 2-letter USPS state code (or AA/AE/AP for military) |
-| `state_name` | str | Full state name |
-| `county` | str? | Dominant county name (when ZIP spans multiple) |
-| `county_fips` | str(5)? | County FIPS code (state + county) |
-| `primary_city` | str? | Most-associated city name |
-| `lat` | float? | Interior point latitude |
-| `lon` | float? | Interior point longitude |
-| `timezone` | str? | IANA timezone (e.g., `America/Los_Angeles`) |
-| `land_area_sq_mi` | float? | Land area in square miles |
-| `water_area_sq_mi` | float? | Water area in square miles |
+| Field | Type | Nullable | Description |
+|---|---|---|---|
+| `zip` | str | No | 5-digit ZIP, zero-padded. Primary key. |
+| `state` | str | No | 2-letter USPS state code (or AA/AE/AP for military) |
+| `state_name` | str | No | Full state name |
+| `county` | str | Yes | Dominant county name (when ZIP spans multiple) |
+| `county_fips` | str | Yes | 5-digit county FIPS code (state + county) |
+| `primary_city` | str | Yes | Most-associated city name |
+| `lat` | float | Yes | Interior point latitude |
+| `lon` | float | Yes | Interior point longitude |
+| `timezone` | str | Yes | IANA timezone (e.g., `America/Los_Angeles`) |
+| `land_area_sq_mi` | float | Yes | Land area in square miles |
+| `water_area_sq_mi` | float | Yes | Water area in square miles |
 
 ### Metro / region
 
-| Field | Type | Description |
-|---|---|---|
-| `cbsa_code` | str? | Core-Based Statistical Area code (5-digit) |
-| `cbsa_name` | str? | CBSA name (e.g., `Seattle-Tacoma-Bellevue, WA`) |
-| `cbsa_type` | enum? | `Metro` / `Micro` / null |
-| `msa_code` | str? | Same as cbsa_code if Metro, else null |
-| `msa_name` | str? | Same as cbsa_name if Metro, else null |
-| `csa_code` | str? | Combined Statistical Area code (parent of CBSA) |
-| `csa_name` | str? | CSA name |
-| `is_metro` | bool | True iff cbsa_type == `Metro` |
-| `census_region` | enum? | `Northeast` / `Midwest` / `South` / `West` / `Territories` |
-| `census_division` | enum? | One of 11 divisions (9 standard + 2 territory) |
+| Field | Type | Nullable | Description |
+|---|---|---|---|
+| `cbsa_code` | str | Yes | Core-Based Statistical Area code (5-digit) |
+| `cbsa_name` | str | Yes | CBSA name (e.g., `Seattle-Tacoma-Bellevue, WA`) |
+| `cbsa_type` | str | Yes | `Metro` / `Micro` |
+| `msa_code` | str | Yes | Same as cbsa_code if Metro, else null |
+| `msa_name` | str | Yes | Same as cbsa_name if Metro, else null |
+| `csa_code` | str | Yes | Combined Statistical Area code (parent of CBSA) |
+| `csa_name` | str | Yes | CSA name |
+| `is_metro` | bool | No | True iff cbsa_type == `Metro` |
+| `census_region` | str | Yes | `Northeast` / `Midwest` / `South` / `West` / `Territories` |
+| `census_division` | str | Yes | One of 11 divisions (9 standard + 2 territory) |
 
 ### Population
 
-| Field | Type | Description |
-|---|---|---|
-| `population` | int? | Total population |
-| `population_density` | float? | Population per square mile of land |
-| `households` | int? | Total households |
-| `median_age` | float? | Median age in years |
-| `pct_under_18` | float? | Percent of population under 18 |
-| `pct_65_plus` | float? | Percent 65 or older |
+| Field | Type | Nullable | Description |
+|---|---|---|---|
+| `population` | int | Yes | Total population |
+| `population_density` | float | Yes | Population per square mile of land |
+| `households` | int | Yes | Total households |
+| `median_age` | float | Yes | Median age in years |
+| `pct_under_18` | float | Yes | Percent of population under 18 |
+| `pct_65_plus` | float | Yes | Percent 65 or older |
 
 ### Economic
 
-| Field | Type | Description |
-|---|---|---|
-| `median_household_income` | int? | USD |
-| `pct_below_poverty` | float? | Percent below federal poverty line |
-| `pct_employed` | float? | Labor force participation rate |
-| `mean_travel_time_to_work_minutes` | float? | Average commute time |
-| `pct_no_vehicles` | float? | Percent of households with no vehicles |
+| Field | Type | Nullable | Description |
+|---|---|---|---|
+| `median_household_income` | int | Yes | USD |
+| `pct_below_poverty` | float | Yes | Percent below federal poverty line |
+| `pct_employed` | float | Yes | Labor force participation rate |
+| `mean_travel_time_to_work_minutes` | float | Yes | Average commute time |
+| `pct_no_vehicles` | float | Yes | Percent of households with no vehicles |
 
 ### Education
 
-| Field | Type | Description |
-|---|---|---|
-| `pct_bachelors_or_higher` | float? | Percent of adults 25+ with bachelor's or higher |
+| Field | Type | Nullable | Description |
+|---|---|---|---|
+| `pct_bachelors_or_higher` | float | Yes | Percent of adults 25+ with bachelor's or higher |
 
 ### Housing
 
-| Field | Type | Description |
-|---|---|---|
-| `total_housing_units` | int? | Total housing units |
-| `pct_owner_occupied` | float? | Percent of occupied units owner-occupied |
-| `pct_vacant` | float? | Percent of housing units vacant |
-| `pct_single_family` | float? | Percent that are 1-unit structures |
-| `pct_multi_family` | float? | Percent that are 5+ unit structures |
-| `median_home_value` | int? | USD |
-| `vacancy_for_seasonal_use` | float? | Percent vacant for seasonal use |
+| Field | Type | Nullable | Description |
+|---|---|---|---|
+| `total_housing_units` | int | Yes | Total housing units |
+| `pct_owner_occupied` | float | Yes | Percent of occupied units owner-occupied |
+| `pct_vacant` | float | Yes | Percent of housing units vacant |
+| `pct_single_family` | float | Yes | Percent that are 1-unit structures |
+| `pct_multi_family` | float | Yes | Percent that are 5+ unit structures |
+| `median_home_value` | int | Yes | USD |
+| `vacancy_for_seasonal_use` | float | Yes | Percent vacant for seasonal use |
 
 ### Race / ethnicity
 
 All percentages in 0–1 range, sourced from Census ACS B03002 table.
 
-| Field | Type | Description |
-|---|---|---|
-| `pct_white` | float? | Non-Hispanic white |
-| `pct_black` | float? | Black or African American |
-| `pct_hispanic` | float? | Hispanic or Latino (any race) |
-| `pct_asian` | float? | Asian |
-| `pct_native_american` | float? | American Indian / Alaska Native |
-| `pct_pacific_islander` | float? | Native Hawaiian / Pacific Islander |
+| Field | Type | Nullable | Description |
+|---|---|---|---|
+| `pct_white` | float | Yes | Non-Hispanic white |
+| `pct_black` | float | Yes | Black or African American |
+| `pct_hispanic` | float | Yes | Hispanic or Latino (any race) |
+| `pct_asian` | float | Yes | Asian |
+| `pct_native_american` | float | Yes | American Indian / Alaska Native |
+| `pct_pacific_islander` | float | Yes | Native Hawaiian / Pacific Islander |
 
 ### USPS classification
 
-| Field | Type | Description |
-|---|---|---|
-| `zip_type` | enum | `Standard` / `PO_Box` / `Unique` / `Military` (heuristic) |
+| Field | Type | Nullable | Description |
+|---|---|---|---|
+| `zip_type` | str | No | `Standard` / `PO_Box` / `Unique` / `Military` (heuristic) |
 
 The official USPS classification is not redistributable. `zip_type` is
 inferred from population, area, and prefix conventions. Accuracy is high
@@ -266,20 +273,20 @@ cases (e.g., very small Unique ZIPs as PO_Box).
 
 ### Engineered features
 
-| Field | Type | Description |
-|---|---|---|
-| `urbanicity_tier` | enum? | `rural` (<100/sq mi) / `suburban` (100–1000) / `urban` (1000–10000) / `dense_urban` (>10000) |
-| `climate_zone` | enum? | `tropical` / `subtropical` / `temperate` / `continental` / `cold` (latitude-based) |
-| `is_college_town` | bool | Heuristic: high education + moderate density + non-trivial population |
-| `is_resort_area` | bool | Heuristic: high seasonal-housing-vacancy ratio |
+| Field | Type | Nullable | Description |
+|---|---|---|---|
+| `urbanicity_tier` | str | Yes | `rural` (<100/sq mi) / `suburban` (100–1000) / `urban` (1000–10000) / `dense_urban` (>10000) |
+| `climate_zone` | str | Yes | `tropical` / `subtropical` / `temperate` / `continental` / `cold` (latitude-based) |
+| `is_college_town` | bool | No | Heuristic: high education + moderate density + non-trivial population |
+| `is_resort_area` | bool | No | Heuristic: high seasonal-housing-vacancy ratio |
 
 ### Build metadata
 
-| Field | Type | Description |
-|---|---|---|
-| `data_year` | int | ACS vintage year |
-| `build_date` | date | Date the artifact was built |
-| `build_version` | str | Package version that built this artifact |
+| Field | Type | Nullable | Description |
+|---|---|---|---|
+| `data_year` | int | No | ACS vintage year |
+| `build_date` | date | No | Date the artifact was built |
+| `build_version` | str | No | Package version that built this artifact |
 
 ---
 
