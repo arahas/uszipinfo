@@ -167,7 +167,7 @@ uszipinfo.ENUMS         # allowed values for enum-like columns
 
 ## Schema
 
-54 columns across 10 categories. All percentage fields are in 0–1 range
+66 columns across 10 categories. All percentage fields are in 0–1 range
 (not 0–100).
 
 The **Nullable** column indicates whether the field can be `None` (in
@@ -205,6 +205,8 @@ measure.
 | `csa_code` | str | Yes | Combined Statistical Area code (parent of CBSA) |
 | `csa_name` | str | Yes | CSA name |
 | `is_metro` | bool | No | True iff cbsa_type == `Metro` |
+| `is_top_100_metro` | bool | No | True iff in one of the 100 largest CBSAs by population |
+| `dist_to_metro_center_mi` | float | Yes | Distance to the largest-population ZIP in the same CBSA |
 | `census_region` | str | Yes | `Northeast` / `Midwest` / `South` / `West` / `Territories` |
 | `census_division` | str | Yes | One of 11 divisions (9 standard + 2 territory) |
 
@@ -215,8 +217,10 @@ measure.
 | `population` | int | Yes | Total population |
 | `population_density` | float | Yes | Population per square mile of land |
 | `households` | int | Yes | Total households |
+| `avg_household_size` | float | Yes | Average residents per household |
 | `median_age` | float | Yes | Median age in years |
 | `pct_under_18` | float | Yes | Percent of population under 18 |
+| `pct_age_18_to_24` | float | Yes | Percent of population aged 18–24 (college-age cohort) |
 | `pct_65_plus` | float | Yes | Percent 65 or older |
 
 ### Economic
@@ -224,16 +228,23 @@ measure.
 | Field | Type | Nullable | Description |
 |---|---|---|---|
 | `median_household_income` | int | Yes | USD |
+| `gini_index` | float | Yes | Income inequality (0 = perfect equality, 1 = perfect inequality) |
+| `pct_under_25k` | float | Yes | Fraction of households earning <$25k |
+| `pct_over_200k` | float | Yes | Fraction of households earning ≥$200k |
 | `pct_below_poverty` | float | Yes | Percent below federal poverty line |
 | `pct_employed` | float | Yes | Labor force participation rate |
 | `mean_travel_time_to_work_minutes` | float | Yes | Average commute time |
 | `pct_no_vehicles` | float | Yes | Percent of households with no vehicles |
 
-### Education
+### Education / academic
 
 | Field | Type | Nullable | Description |
 |---|---|---|---|
 | `pct_bachelors_or_higher` | float | Yes | Percent of adults 25+ with bachelor's or higher |
+| `pct_college_enrolled` | float | Yes | Fraction of residents currently enrolled in college (undergraduate or graduate). Strong **back-to-school seasonality** signal. |
+| `pct_dorm_population` | float | Yes | Fraction of residents in group quarters / dormitories. **Strongest seasonality signal** for academic-cycle ZIPs (dorms empty Memorial Day to Labor Day). |
+| `college_count` | int | No | Number of degree-granting institutions located in this ZIP (from IPEDS) |
+| `college_enrollment_total` | int | No | Total student enrollment across institutions in this ZIP |
 
 ### Housing
 
@@ -244,6 +255,7 @@ measure.
 | `pct_vacant` | float | Yes | Percent of housing units vacant |
 | `pct_single_family` | float | Yes | Percent that are 1-unit structures |
 | `pct_multi_family` | float | Yes | Percent that are 5+ unit structures |
+| `pct_with_children` | float | Yes | Fraction of households with children under 18 |
 | `median_home_value` | int | Yes | USD |
 | `vacancy_for_seasonal_use` | float | Yes | Percent vacant for seasonal use |
 
@@ -396,6 +408,7 @@ All sources are public-domain or permissively licensed:
 | **US Census ZCTA-County Relationship** | ZIP-to-county mapping | Public domain | Decennial |
 | **OMB CBSA Delineations** | County-to-CBSA, MSA classification, CSA hierarchy | Public domain | Annual |
 | **GeoNames Postal Codes** | Full ZIP coverage including PO Box / Military / Territory ZIPs, primary city, lat/lon | CC BY 4.0 | Continuous |
+| **IPEDS** (US Dept of Education) | Degree-granting institutions, locations, enrollment | Public domain | Annual |
 
 GeoNames attribution: data ©  GeoNames (https://www.geonames.org), used
 under CC BY 4.0.
@@ -558,14 +571,27 @@ control, use the raw `population_density` field directly.
 
 ### How accurate is `is_college_town` / `is_resort_area`?
 
-These are heuristic flags with documented rules:
-- **`is_college_town`**: `pct_bachelors_or_higher > 0.40`,
-  `population_density between 500 and 5000`, `population > 5000`
-- **`is_resort_area`**: `vacancy_for_seasonal_use > 0.15`
+These are derived flags with documented rules:
+- **`is_college_town`** (v1.1.0+): true if any of the following holds:
+  - `pct_dorm_population > 0.10` (substantial dorm presence), or
+  - `pct_college_enrolled > 0.25` (one in four residents currently enrolled), or
+  - `college_enrollment_total >= 5000` (sizeable institution physically in the ZIP)
 
-They catch most well-known examples but will have false positives and
-false negatives. If you need authoritative classifications, validate
-against your own source.
+  This catches dense urban college zones (MIT, Berkeley, UCLA), sprawling
+  campus ZIPs (Penn State, Texas A&M), and small classic college towns
+  (Middlebury, Hanover) consistently.
+
+  For finer-grained seasonality modeling, prefer the underlying continuous
+  signals: `pct_dorm_population` and `pct_college_enrolled` are stronger
+  predictors of back-to-school / summer-break demographic shifts than the
+  boolean flag.
+
+- **`is_resort_area`**: `vacancy_for_seasonal_use > 0.15`. Catches Aspen,
+  Cape Cod, Tahoe well; some false positives in construction-heavy or
+  retirement areas.
+
+If you need authoritative classifications, validate against your own
+source.
 
 ### How is `zip_type` derived?
 

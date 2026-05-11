@@ -94,6 +94,45 @@ ACS_VARS: dict[str, str] = {
     "_pop_pacific":                          "B03002_007E",
     "_pop_hispanic":                         "B03002_012E",
     "_pop_for_race":                         "B03002_001E",
+
+    # ── College enrollment (B14001) ──────────────────────────────────────
+    "_pop_3_plus_for_enrollment":            "B14001_001E",
+    "_pop_in_college_undergrad":             "B14001_008E",
+    "_pop_in_grad_school":                   "B14001_009E",
+
+    # ── Group quarters (proxy for dorm population) ───────────────────────
+    # B26001_001E = total non-institutional group quarters. In college ZIPs
+    # this is dominated by dorm residents; elsewhere it can include other
+    # categories (military barracks, group homes, etc.). Reasonable proxy.
+    "_group_quarters_total":                 "B26001_001E",
+
+    # ── Age 18–24 cohort (B01001) ────────────────────────────────────────
+    "_age_m_18_19":                          "B01001_007E",
+    "_age_m_20":                             "B01001_008E",
+    "_age_m_21":                             "B01001_009E",
+    "_age_m_22_24":                          "B01001_010E",
+    "_age_f_18_19":                          "B01001_031E",
+    "_age_f_20":                             "B01001_032E",
+    "_age_f_21":                             "B01001_033E",
+    "_age_f_22_24":                          "B01001_034E",
+
+    # ── Average household size (B25010) ──────────────────────────────────
+    "avg_household_size":                    "B25010_001E",
+
+    # ── Households with children (B11005) ────────────────────────────────
+    "_households_with_children":             "B11005_002E",
+    "_households_total_for_children":        "B11005_001E",
+
+    # ── Income inequality (B19083) ───────────────────────────────────────
+    "gini_index":                            "B19083_001E",
+
+    # ── Income distribution tails (B19001) ───────────────────────────────
+    "_hh_income_total_for_distribution":     "B19001_001E",
+    "_hh_under_10k":                         "B19001_002E",
+    "_hh_10_to_15k":                         "B19001_003E",
+    "_hh_15_to_20k":                         "B19001_004E",
+    "_hh_20_to_25k":                         "B19001_005E",
+    "_hh_over_200k":                         "B19001_017E",
 }
 
 
@@ -217,6 +256,35 @@ def post_process_acs(raw: pd.DataFrame) -> pd.DataFrame:
     df["pct_asian"] = df["_pop_asian"] / pop_for_race
     df["pct_native_american"] = df["_pop_native"] / pop_for_race
     df["pct_pacific_islander"] = df["_pop_pacific"] / pop_for_race
+
+    # College enrollment as fraction of resident population (3+)
+    df["pct_college_enrolled"] = (
+        (df["_pop_in_college_undergrad"].fillna(0) + df["_pop_in_grad_school"].fillna(0))
+        / df["_pop_3_plus_for_enrollment"]
+    )
+
+    # Group-quarters (dorm proxy) as fraction of total population
+    df["pct_dorm_population"] = df["_group_quarters_total"] / df["population"]
+
+    # Age 18–24 as fraction of population
+    age_18_24_cols = [c for c in df.columns if c.startswith("_age_")]
+    df["_pop_18_24"] = df[age_18_24_cols].sum(axis=1, min_count=1)
+    df["pct_age_18_to_24"] = df["_pop_18_24"] / df["population"]
+
+    # Households with children
+    df["pct_with_children"] = (
+        df["_households_with_children"] / df["_households_total_for_children"]
+    )
+
+    # Income tails
+    df["pct_under_25k"] = (
+        (df["_hh_under_10k"].fillna(0)
+         + df["_hh_10_to_15k"].fillna(0)
+         + df["_hh_15_to_20k"].fillna(0)
+         + df["_hh_20_to_25k"].fillna(0))
+        / df["_hh_income_total_for_distribution"]
+    )
+    df["pct_over_200k"] = df["_hh_over_200k"] / df["_hh_income_total_for_distribution"]
 
     # Drop intermediates
     intermediates = [c for c in df.columns if c.startswith("_")]

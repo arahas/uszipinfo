@@ -174,6 +174,7 @@ NAN_TOLERATED_COLUMNS = {
     "cbsa_code", "cbsa_name", "cbsa_type",
     "msa_code", "msa_name",
     "csa_code", "csa_name",
+    "dist_to_metro_center_mi",  # Null for ZIPs not in any CBSA (rural standalone)
 }
 
 

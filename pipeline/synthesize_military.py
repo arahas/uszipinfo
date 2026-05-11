@@ -68,12 +68,13 @@ def synthesize_military_records(missing_zips: list[str]) -> pd.DataFrame:
                 "primary_city": region,  # No specific city; use region name
                 "zip_type": "Military",
                 "is_metro": False,
+                "is_top_100_metro": False,
                 "is_college_town": False,
                 "is_resort_area": False,
+                "college_count": 0,
+                "college_enrollment_total": 0,
             })
         else:
-            # Unknown ZIP — preserve it as a record so consumers see it,
-            # but don't claim demographics or geography.
             records.append({
                 "zip": z,
                 "state": None,
@@ -81,7 +82,10 @@ def synthesize_military_records(missing_zips: list[str]) -> pd.DataFrame:
                 "primary_city": None,
                 "zip_type": "Standard",
                 "is_metro": False,
+                "is_top_100_metro": False,
                 "is_college_town": False,
                 "is_resort_area": False,
+                "college_count": 0,
+                "college_enrollment_total": 0,
             })
     return pd.DataFrame.from_records(records)

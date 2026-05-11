@@ -167,6 +167,7 @@ def merge_sources(
     gazetteer: pd.DataFrame,
     zcta_county: pd.DataFrame,
     county_cbsa: pd.DataFrame,
+    ipeds: Optional[pd.DataFrame] = None,
     *,
     data_year: int,
     build_version: str,
@@ -249,6 +250,16 @@ def merge_sources(
     df["msa_code"] = df["cbsa_code"].where(is_metro_mask)
     df["msa_name"] = df["cbsa_name"].where(is_metro_mask)
     df["is_metro"] = is_metro_mask.fillna(False)
+
+    # ── Step 9.5: Layer in IPEDS institution counts and enrollment ──────
+    if ipeds is not None and not ipeds.empty:
+        df = df.merge(ipeds, on="zip", how="left")
+    df["college_count"] = (
+        pd.to_numeric(df.get("college_count"), errors="coerce").fillna(0).astype(int)
+    )
+    df["college_enrollment_total"] = (
+        pd.to_numeric(df.get("college_enrollment_total"), errors="coerce").fillna(0).astype(int)
+    )
 
     # ── Step 10: Add any extra_zips not yet covered (e.g., military) ────
     if extra_zips:

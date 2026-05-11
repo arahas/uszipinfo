@@ -34,6 +34,7 @@ from pipeline.engineer_features import add_engineered_features
 from pipeline.fetch_acs import fetch_acs
 from pipeline.fetch_gazetteer import fetch_gazetteer
 from pipeline.fetch_geonames import fetch_geonames
+from pipeline.fetch_ipeds import fetch_ipeds
 from pipeline.fetch_omb import DEFAULT_OMB_URL, fetch_omb_county_cbsa
 from pipeline.fetch_zcta_county import fetch_zcta_county
 from pipeline.merger import merge_sources, reorder_to_schema
@@ -41,7 +42,7 @@ from pipeline.validator import ValidationError, validate
 
 logger = logging.getLogger("uszipinfo.build")
 
-DEFAULT_BUILD_VERSION = "1.0.0"
+DEFAULT_BUILD_VERSION = "1.1.0"
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -74,6 +75,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Path to a CSV with one column 'zip'. ZIPs not covered by "
              "other sources will be added with synthesized records.",
     )
+    p.add_argument(
+        "--ipeds-year", type=int, default=2022,
+        help="IPEDS vintage year for institution + enrollment data. "
+             "Defaults to 2022.",
+    )
     p.add_argument("--verbose", action="store_true")
     return p.parse_args(argv)
 
@@ -96,49 +102,54 @@ def main(argv: list[str] | None = None) -> int:
         extra_zips = extra_df[zip_col].astype(str).str.zfill(5).tolist()
         logger.info("Loaded %d extra ZIPs from %s", len(extra_zips), args.extra_zips)
 
-    logger.info("Step 1/9 — Fetching GeoNames postal coverage")
+    logger.info("Step 1/10 — Fetching GeoNames postal coverage")
     geonames = fetch_geonames()
     logger.info("  GeoNames: %d ZIPs", len(geonames))
 
-    logger.info("Step 2/9 — Fetching Census ACS %s", args.year)
+    logger.info("Step 2/10 — Fetching Census ACS %s", args.year)
     acs = fetch_acs(year=args.year, api_key=api_key)
     logger.info("  ACS: %d rows", len(acs))
 
-    logger.info("Step 3/9 — Fetching Census Gazetteer %s", gaz_year)
+    logger.info("Step 3/10 — Fetching Census Gazetteer %s", gaz_year)
     gaz = fetch_gazetteer(year=gaz_year)
     logger.info("  Gazetteer: %d rows", len(gaz))
 
-    logger.info("Step 4/9 — Fetching Census ZCTA-County relationship")
+    logger.info("Step 4/10 — Fetching Census ZCTA-County relationship")
     zcta_county = fetch_zcta_county()
     logger.info("  ZCTA-County: %d rows", len(zcta_county))
 
-    logger.info("Step 5/9 — Fetching OMB delineation")
+    logger.info("Step 5/10 — Fetching OMB delineation")
     county_cbsa = fetch_omb_county_cbsa(args.omb_url)
     logger.info("  County-CBSA: %d rows", len(county_cbsa))
 
-    logger.info("Step 6/9 — Merging sources")
+    logger.info("Step 6/10 — Fetching IPEDS institution + enrollment %s", args.ipeds_year)
+    ipeds = fetch_ipeds(year=args.ipeds_year)
+    logger.info("  IPEDS: %d ZIPs with at least one institution", len(ipeds))
+
+    logger.info("Step 7/10 — Merging sources")
     merged = merge_sources(
         geonames=geonames,
         acs=acs,
         gazetteer=gaz,
         zcta_county=zcta_county,
         county_cbsa=county_cbsa,
+        ipeds=ipeds,
         data_year=args.year,
         build_version=args.build_version,
         extra_zips=extra_zips,
     )
     logger.info("  Merged: %d rows", len(merged))
 
-    logger.info("Step 7/9 — Deriving ZIP types")
+    logger.info("Step 8/10 — Deriving ZIP types")
     merged["zip_type"] = derive_zip_types(merged)
     type_counts = merged["zip_type"].value_counts().to_dict()
     logger.info("  ZIP types: %s", type_counts)
 
-    logger.info("Step 8/9 — Engineering features")
+    logger.info("Step 9/10 — Engineering features")
     merged = add_engineered_features(merged)
     merged = reorder_to_schema(merged)
 
-    logger.info("Step 9/9 — Validating")
+    logger.info("Step 10/10 — Validating")
     try:
         validate(merged, expected_year=args.year)
     except ValidationError as exc:
