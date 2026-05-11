@@ -4,7 +4,9 @@ The ``ZipInfo`` dataclass is the typed representation of a single ZIP record.
 The ``SCHEMA`` dictionary documents every column, its type, and its source.
 """
 
+
 from __future__ import annotations
+
 
 from dataclasses import dataclass, asdict
 from datetime import date

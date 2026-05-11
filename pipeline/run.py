@@ -19,7 +19,9 @@ sources will be synthesized (military prefix detection or skeleton
 records).
 """
 
+
 from __future__ import annotations
+
 
 import argparse
 import logging

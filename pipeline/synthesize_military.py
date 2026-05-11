@@ -14,7 +14,9 @@ by any other data source, we generate skeleton records with the right
 ``zip_type`` and ``state`` so consumers can identify them.
 """
 
+
 from __future__ import annotations
+
 
 import pandas as pd
 

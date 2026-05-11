@@ -5,7 +5,9 @@ This module discovers the latest available year and provides a cached
 DataFrame loader.
 """
 
+
 from __future__ import annotations
+
 
 import re
 from functools import lru_cache

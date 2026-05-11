@@ -5,7 +5,9 @@ A failed check raises ``ValidationError`` with a list of failures so
 operators can see every problem in one pass instead of one at a time.
 """
 
+
 from __future__ import annotations
+
 
 import re
 from typing import Callable
