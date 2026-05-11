@@ -1,0 +1,90 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "uszipinfo"
+version = "1.0.0"
+description = "ML-ready ZIP-code-level metadata for the United States."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+    { name = "uszipinfo contributors" },
+]
+keywords = [
+    "zip", "zipcode", "postal-code", "census", "acs", "demographics",
+    "geography", "metadata", "metro", "msa", "cbsa", "machine-learning",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Sociology",
+]
+dependencies = [
+    "pandas>=1.5",
+    "pyarrow>=10.0",
+    "numpy>=1.20",
+]
+
+[project.optional-dependencies]
+build = [
+    "requests>=2.28",
+    "openpyxl>=3.0",
+    "timezonefinder>=6.0",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.1",
+    "mypy>=1.0",
+    "build>=1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/arahas/uszipinfo"
+Repository = "https://github.com/arahas/uszipinfo"
+Issues = "https://github.com/arahas/uszipinfo/issues"
+Changelog = "https://github.com/arahas/uszipinfo/blob/main/CHANGELOG.md"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/uszipinfo"]
+# The _data subdirectory contains the bundled Parquet artifact and is
+# automatically included by hatchling because it's inside the package
+# directory. No force-include needed.
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/",
+    "pipeline/",
+    "tests/",
+    "README.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "LICENSE",
+    "DATA_LICENSE",
+    "REQUIREMENTS.md",
+    "RELEASE.md",
+    "pyproject.toml",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "RUF"]

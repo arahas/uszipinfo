@@ -1,0 +1,50 @@
+# Data Sources and Licensing
+
+The data bundled with `uszipinfo` is derived entirely from US government
+public-domain sources. These sources are freely usable, modifiable, and
+redistributable without restriction.
+
+## Sources
+
+### US Census Bureau — American Community Survey (ACS) 5-Year Estimates
+
+Provides demographic, economic, housing, and education data at the ZIP Code
+Tabulation Area (ZCTA) level.
+
+- Source: https://www.census.gov/programs-surveys/acs
+- License: Public domain (US government work)
+
+### US Census Bureau — Gazetteer Files
+
+Provides geographic identifiers including latitude, longitude, land area,
+and water area for each ZCTA.
+
+- Source: https://www.census.gov/geographies/reference-files/time-series/geo/gazetteer-files.html
+- License: Public domain
+
+### US Department of Housing and Urban Development (HUD) — USPS ZIP Code Crosswalk Files
+
+Provides ZIP-to-county and ZIP-to-CBSA mappings with population-weighted
+ratios for ZIPs spanning multiple administrative areas.
+
+- Source: https://www.huduser.gov/portal/datasets/usps_crosswalk.html
+- License: Public domain
+
+### Office of Management and Budget (OMB) — CBSA Delineations
+
+Provides metropolitan and micropolitan statistical area definitions and
+their hierarchical relationships (Metro/Micro classification, CSA membership).
+
+- Source: https://www.census.gov/geographies/reference-files/time-series/demo/metro-micro/delineation-files.html
+- License: Public domain
+
+## Notes
+
+- USPS authoritative ZIP type classifications are NOT redistributable.
+  This package derives ZIP types heuristically from population, area, and
+  other public signals. The `zip_type` field is documented as approximate.
+
+- All data is refreshed annually following the December ACS release cycle.
+
+- Build pipeline source code is included in this repository for full
+  transparency of data lineage.
