@@ -5,6 +5,16 @@ All notable changes to `uszipinfo` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] — 2026-05-11
+
+### Changed
+
+- Raised minimum Python to 3.10. Python 3.9 reached end-of-life in
+  October 2025 and modern pandas/pyarrow no longer support it; CI was
+  failing on 3.9 because of dependency-resolution issues.
+- Added explicit `from __future__ import annotations` to modules using
+  PEP 585 generic syntax for clean import behavior across versions.
+
 ## [1.0.0] — 2026-05-11
 
 Initial release.

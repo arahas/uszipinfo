@@ -7,7 +7,7 @@ from uszipinfo.client import filter_zips, load, lookup, lookup_many
 from uszipinfo.geo import distance_mi, haversine_mi, nearest_zips
 from uszipinfo.schema import COLUMNS, ENUMS, REQUIRED_COLUMNS, ZipInfo
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 #: ACS vintage of the bundled data, or ``None`` if no data is bundled.
 DATA_YEAR = latest_data_year()
